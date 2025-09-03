@@ -189,7 +189,7 @@ Una vez instalado, el servicio DHCP debe **iniciarse** y mantenerse en ejecució
 
 En **Linux**, la configuración del servidor DHCP se realiza **editando** su fichero principal (en **ISC DHCP**, el archivo **/etc/dhcp/dhcpd.conf**). En este archivo se definen los **parámetros básicos**: las redes o **subredes** que servirá, con su **rango** de IPs disponibles, la **máscara**, **gateway**, **DNS**, **duración** de los _leases_, etc. Por ejemplo, una sección típica podría ser:
 
-```ini
+```apacheconf
 subnet 192.168.1.0 netmask 255.255.255.0 {
     range 192.168.1.100 192.168.1.200;
     option routers 192.168.1.1;
