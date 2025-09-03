@@ -189,13 +189,15 @@ Una vez instalado, el servicio DHCP debe **iniciarse** y mantenerse en ejecució
 
 En **Linux**, la configuración del servidor DHCP se realiza **editando** su fichero principal (en **ISC DHCP**, el archivo **/etc/dhcp/dhcpd.conf**). En este archivo se definen los **parámetros básicos**: las redes o **subredes** que servirá, con su **rango** de IPs disponibles, la **máscara**, **gateway**, **DNS**, **duración** de los _leases_, etc. Por ejemplo, una sección típica podría ser:
 
-# subnet 192.168.1.0 netmask 255.255.255.0 {
-#     range 192.168.1.100 192.168.1.200;
-#     option routers 192.168.1.1;
-#     option domain-name-servers 192.168.1.1, 8.8.8.8;
-#     default-lease-time 86400;
-#     max-lease-time 172800;
-# }
+```ini
+subnet 192.168.1.0 netmask 255.255.255.0 {
+    range 192.168.1.100 192.168.1.200;
+    option routers 192.168.1.1;
+    option domain-name-servers 192.168.1.1, 8.8.8.8;
+    default-lease-time 86400;
+    max-lease-time 172800;
+}
+```
 
 Esto define un **ámbito** para la red **192.168.1.0/24** con IPs .100–.200 y especifica que la **puerta de enlace** y **DNS** primario es **192.168.1.1** (quizá el propio router o servidor) y DNS secundario **8.8.8.8**, con _lease_ por defecto de **1 día**. También se pueden incluir más **option** según necesidades (por ejemplo, **option domain-name "empresa.local";** para definir el **dominio** de búsqueda DNS). En **Windows Server**, la configuración se realiza mediante la **consola gráfica**: se crea una nueva **ámbito (scope)** indicando la red (ej: **192.168.1.0/24**), el rango inicial-final, la **puerta de enlace** (router option), los **DNS**, y el **lease time**. La consola permite agregar **exclusiones** fácilmente (por ejemplo excluir **.1 a .50** si esas son IP fijas de servidores). Los parámetros básicos a configurar son esencialmente los **mismos** en ambos sistemas. Un detalle: en Windows, el servidor DHCP puede **detectar automáticamente** si la subred del servidor es, por ejemplo, **192.168.1.0/24** y sugerir esos datos. En cambio en Linux, hay que ser **explícito** en el archivo. En ambos casos, tras **modificar** la configuración, se debe **reiniciar** el servicio para aplicar cambios (en Linux **Comando:** systemctl restart isc-dhcp-server, en Windows **reiniciar servicio** o usar la opción de **refrescar** en la consola). Es buena práctica **documentar** la configuración DHCP, especialmente cualquier **reserva** o **exclusión**, para que el equipo de soporte conozca qué direcciones deben **asignarse manualmente** si es el caso. También conviene **mantener** los servidores DHCP **actualizados**, ya que ha habido **vulnerabilidades** en el pasado (un servidor DHCP comprometido podría entregar configuración maliciosa, como **gateway erróneo** o **DNS falseados**).
 
