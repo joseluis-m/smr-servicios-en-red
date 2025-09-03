@@ -1,57 +1,7 @@
 site_name: Servicios en red (0227) — 2.º SMR
-site_description: Contenidos teóricos por unidades del módulo profesional «Servicios en red (Código 0227)»
-site_url: https://tu-usuario.github.io/smr-servicios-en-red/
-repo_name: tu-usuario/smr-servicios-en-red
-repo_url: https://github.com/tu-usuario/smr-servicios-en-red
-copyright: "© 2025 José Luis"
-
+site_url: https://joseluis-m.github.io/smr-servicios-en-red/
 theme:
   name: material
   language: es
-  features:
-    - navigation.tabs
-    - navigation.top
-    - navigation.footer
-    - content.code.copy
-    - content.tabs.link
-    - toc.integrate
-  palette:
-    - scheme: default
-      primary: indigo
-      accent: indigo
-
 plugins:
   - search
-  - glightbox
-  - git-revision-date-localized:
-      enable_creation_date: true
-      locale: es
-  - mermaid2
-
-markdown_extensions:
-  - admonition
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - tables
-  - toc:
-      permalink: true
-  - pymdownx.aria_hidden
-  - pymdownx.details
-  - pymdownx.highlight
-  - pymdownx.inlinehilite
-  - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
-
-nav:
-  - Inicio: index.md
-  - Introducción: 00-introduccion.md
-  - Unidades:
-      - "U1 · Instalación de servicios de configuración dinámica de sistemas":
-          - "Contenidos": unidades/u01-instalacion-servicios-configuracion-dinamica.md
-      - "U2 · …": unidades/u02-…md
-      # Añade aquí el resto de unidades en orden
