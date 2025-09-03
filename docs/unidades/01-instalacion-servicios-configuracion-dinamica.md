@@ -1,76 +1,173 @@
-# 1. Instalación de servicios de configuración dinámica de sistemas
+# Instalación de servicios de configuración dinámica de sistemas
 
-## Dirección IP, máscara de red, puerta de enlace.
-Una dirección **IP** identifica de forma unívoca a cada equipo en una red basada en TCP/IP. En IPv4 se expresa en notación decimal con puntos (por ejemplo, 192.168.10.25) y se combina con una **máscara de red** o **prefijo CIDR** (255.255.255.0 ≡ /24) que separa la parte de red y la de host. La **puerta de enlace** (gateway) es la IP del router al que se envía el tráfico destinado fuera de la subred local.
-Una configuración coherente exige que IP y gateway pertenezcan a la misma subred y que la máscara sea idéntica para todos los equipos de esa subred. Además, suele definirse al menos un **servidor DNS** y, opcionalmente, un **dominio de búsqueda** para resolver nombres internos.
-Ejemplo aplicado (aula o pyme): subred 192.168.30.0/24, gateway 192.168.30.1, clientes 192.168.30.50–192.168.30.200, DNS interno 192.168.30.10 y secundario público 1.1.1.1. Esta planificación evita conflictos, facilita el soporte y prepara el entorno para la asignación dinámica mediante DHCP.
-Errores típicos que provocan pérdida de conectividad: máscara distinta entre equipos, gateway fuera de subred, IPs duplicadas por configuraciones manuales y uso de DNS públicos en equipos que necesitan resolver servicios internos.
+## Dirección IP, máscara de red, puerta de enlace
+> Una dirección IP identifica de forma única a cada dispositivo en una red basada en TCP/IP.
 
----
+- **Dirección IP (IPv4)**: consta de cuatro números (octetos) separados por puntos (por ejemplo, 192.168.1.100) que identifican tanto la red como el host.
+- **Máscara de red**: determina qué parte de la dirección IP corresponde a la red y cuál al host; por ejemplo, **255.255.255.0** (equivalente a **/24**) indica que los primeros 3 octetos son la parte de red y el último identifica al host.
+- **Puerta de enlace (router)**: dirección IP del encaminador de la red local, que actúa como punto de salida hacia otras redes (típicamente, hacia Internet). Por ejemplo, en una pequeña oficina con red **192.168.1.0/24**, la puerta de enlace suele ser **192.168.1.1**.
 
-## DHCP (Dynamic Host Configuration Protocol):
-El **DHCP** automatiza la entrega de parámetros de red a los clientes (IP, máscara, gateway, DNS, NTP, dominio, rutas, opciones PXE, etc.). Reduce errores humanos, acelera el alta de equipos y permite políticas homogéneas en aulas y oficinas.
+**Notas y buenas prácticas:**
+- Todos los equipos de una misma **subred comparten la misma máscara**, lo que define el rango de direcciones locales.
+- Los equipos envían el tráfico destinado **fuera de la LAN** a la puerta de enlace para que el router lo reenvíe.
+- Un técnico de soporte debe saber **configurar estos tres parámetros** en un PC: si se asignan mal (por ejemplo, una máscara incorrecta o puerta de enlace errónea), el equipo podría no comunicarse con otros o no tener acceso a Internet.
+- En entornos de **PYME y centros educativos** es habitual usar direcciones **IP privadas** (como 192.168.x.x o 10.x.x.x) con una puerta de enlace que conecta con la red del proveedor de Internet.
+- Es importante **planificar el direccionamiento** evitando conflictos y **documentando** qué IP se asigna a cada servidor, impresora o dispositivo importante.
+- Por lo general, los **servidores o dispositivos críticos** se configuran con **IP fija**, mientras que a los **ordenadores de usuario** se les puede asignar **IP dinámica** mediante un servidor DHCP para simplificar la administración.
 
-### Rangos, exclusiones, concesiones y reservas.
-Un **rango** (scope) define el conjunto de direcciones entregables en una subred (por ejemplo, 192.168.30.50–192.168.30.200). Las **exclusiones** marcan direcciones dentro de ese rango que no deben asignarse automáticamente (por ejemplo, reservar 192.168.30.50–192.168.30.59 para dispositivos especiales). Una **concesión** (lease) es el “alquiler” temporal de una IP a un equipo identificado, por lo general, por su MAC; incluye tiempos de renovación y expiración. Las **reservas** fijan una IP estable para un dispositivo concreto (mapeo MAC→IP) manteniendo la gestión centralizada en el servidor.
-En entornos con varias subredes o VLAN, conviene segmentar rangos por función (aulas, administración, invitados) y documentar reservas en el inventario para agilizar el soporte y la trazabilidad.
+## DHCP (Dynamic Host Configuration Protocol)
+> DHCP es un protocolo de configuración dinámica de host que **automatiza la asignación de parámetros IP** a los clientes de una red.
 
-### Funcionamiento de protocolo DHCP.
-El ciclo básico en IPv4 se recuerda como **DORA**:
-1) **Discover**: el cliente anuncia por broadcast que necesita configuración.
-2) **Offer**: el servidor propone una IP y opciones.
-3) **Request**: el cliente solicita explícitamente la oferta elegida.
-4) **ACK**: el servidor confirma y entrega la configuración (o **NAK** si la deniega).
-Los puertos de trabajo son UDP 67 (servidor) y 68 (cliente). A mitad del arrendamiento (T1) el cliente intenta renovar; si falla, lo reintenta en T2. En redes con **VLAN**, los broadcasts no cruzan routers, por lo que se usa **DHCP Relay** (ip helper) para reenviar solicitudes al servidor central. Entre las **opciones** habituales destacan router/gateway (003), DNS (006), dominio (015), NTP (042), rutas (121/249) y parámetros PXE para imaging masivo.
-La alta disponibilidad se obtiene con **failover** (equilibrio y toma de control) o con servidores redundantes y base de concesiones compartida, lo que resulta clave en redes de aulas y sedes.
+- En lugar de configurar manualmente IP, máscara, puerta de enlace y DNS en cada equipo, un **servidor DHCP** los distribuye bajo demanda.
+- Esto **reduce errores de configuración** y facilita mover equipos entre redes.
+- **Ejemplo**: en una empresa pequeña, el servidor DHCP puede asignar automáticamente direcciones en el rango **192.168.1.100–192.168.1.200** con su máscara y gateway correspondientes a cada portátil que se conecte, evitando tener que configurarlos a mano.
 
-### Tipos de mensajes DHCP.
-En **IPv4** se utilizan, entre otros: DISCOVER, OFFER, REQUEST, DECLINE, ACK, NAK, RELEASE, INFORM.
-En **IPv6 (DHCPv6)**: SOLICIT, ADVERTISE, REQUEST, CONFIRM, RENEW, REBIND, REPLY, RELEASE, DECLINE, RECONFIGURE, INFORMATION-REQUEST. En IPv6 conviven **SLAAC** y combinaciones SLAAC+DHCPv6 para distribuir opciones como DNS.
+### Rangos, exclusiones, concesiones y reservas
+- Un servidor DHCP trabaja sobre uno o varios **rangos/ámbitos (pools)** de direcciones IP definidas.
+  - **Ejemplo de ámbito**: desde **192.168.1.100** hasta **192.168.1.200** para los clientes.
+- **Exclusiones**: direcciones dentro del ámbito que **no se entregarán** porque están asignadas de forma fija a servidores u otros equipos (por ejemplo, excluir la **.100** si la usa una impresora con IP fija).
+- **Concesiones (leases)**: cuando un cliente obtiene una IP, el servidor **“alquila”** la IP por un tiempo determinado (por ejemplo, **24 horas**). La concesión incluye la dirección otorgada, la **MAC** del cliente y el **tiempo de expiración**.
+  - Si el cliente sigue activo, **intentará renovar** la concesión antes de que expire para conservar la misma IP.
+  - Si se apaga o desconecta, el servidor **podrá recuperar** esa IP una vez vencido el plazo para asignársela a otro.
+- **Reservas**: asignaciones fijas dentro del DHCP para que a una determinada **MAC** o cliente **siempre se le entregue la misma IP** específica.
+  - Útil para **NAS, impresoras de red** u otros dispositivos que requieren IP estable, gestionándolos vía DHCP.
+  - Evitan conflictos y facilitan la **administración centralizada** de direcciones.
+- **Práctica en PYME**: crear **reservas** para servidores y dispositivos importantes, y dejar el resto del rango para **concesiones dinámicas** de los PCs de oficina.
 
----
+### Funcionamiento del protocolo DHCP (DORA)
+> El proceso DHCP sigue un esquema cliente-servidor de cuatro fases conocido por el acrónimo **DORA**.
 
-## Clientes DHCP en sistemas operativos libres y propietarios:
-### Instalación.
-En **GNU/Linux** el cliente DHCP forma parte del sistema (por systemd-networkd, NetworkManager o dhclient/dhcpcd según la distribución). En **Windows** y **macOS** el cliente viene habilitado por defecto en los adaptadores de red. En máquinas virtuales, el modo **NAT** utiliza el DHCP del hipervisor; en **bridge**, el cliente negocia con el servidor de la LAN.
+1. **Discover (DHCP Discover)**: el cliente envía un broadcast para **encontrar servidores DHCP** disponibles.
+2. **Offer (DHCP Offer)**: uno o varios servidores responden proponiendo **una configuración** (IP disponible y otros datos como máscara, gateway, DNS, etc.).
+3. **Request (DHCP Request)**: el cliente **elige una oferta** y la solicita (normalmente en broadcast, indicando qué oferta acepta).
+4. **ACK (DHCP ACK)**: el servidor confirma la **concesión** enviando el reconocimiento con la configuración definitiva.
 
-### Configuración de interfaces de red para que obtengan su configuración por DHCP.
-En **Linux** con Netplan (Ubuntu Server) se activa dhcp4 en la interfaz y se aplican cambios con netplan apply.
-En **Linux** con NetworkManager (estaciones de aula) se establece ipv4.method auto y se levanta la conexión con nmcli.
-En **Windows** (PowerShell) se habilita DHCP en la interfaz con Set-NetIPInterface y se renueva con ipconfig /release e ipconfig /renew.
-Comprobaciones útiles: ipconfig /all (Windows), nmcli dev show o journalctl -u NetworkManager (Linux) y revisión de resolv.conf para DNS. Un síntoma típico de fallo es obtener una dirección **APIPA** (169.254.x.x), que indica ausencia de respuesta del servidor.
+**Consideraciones operativas:**
+- Este ciclo garantiza que **no haya duplicados de IP** y que la configuración llegue correctamente.
+- **Mensajes adicionales**:
+  - **DHCP NAK**: negativa si el servidor rechaza una solicitud (por ejemplo, por expiración).
+  - **DHCP Release**: el cliente libera voluntariamente la IP (por ejemplo, al apagarse).
+- En entornos profesionales:
+  - Asegurar **solo un servidor DHCP activo por segmento** para evitar conflictos de ofertas.
+  - Ajustar **tiempos de arrendamiento**: más cortos en redes con muchos cambios; más largos en redes estables.
+  - DHCP puede distribuir **DNS, nombre de dominio**, opciones **WINS** (redes Windows antiguas) u **opciones de boot PXE** para despliegue.
 
----
+### Tipos de mensajes DHCP
+- **Discover, Offer, Request y ACK** conforman el flujo básico.
+  - **Discover, Request** y algunos **ACK** se envían en **broadcast** (el cliente aún no conoce servidor ni su propia IP).
+  - El **Offer** puede ser **unicast** (si el servidor identifica al cliente) o **broadcast**.
+- Mensajes de **gestión de concesión**:
+  - **DHCP Release**: liberación de IP (al apagar o desconectar).
+  - **DHCP Inform**: solicitar **información adicional** de configuración sin cambiar la IP.
+  - **DHCP NAK**: cuando el cliente solicita una IP inválida o expirada, indicando que debe **reiniciar el proceso**.
+- **Campos internos** de los mensajes: **MAC del cliente**, **ID de transacción** para emparejar solicitudes y respuestas.
+- **Diagnóstico** con analizador de protocolos (por ejemplo, **Wireshark**):
+  - Si no hay IP, verificar **Discover** y **Offer**.
+  - **Sin Offer**: servidor no responde (posible **fallo del servicio** o **bloqueo por cortafuegos**).
+  - **Hay Offer pero no ACK**: posible **interferencia de otro servidor**.
+  - Comprender la secuencia **DORA** ayuda a resolver incidencias como **“IP address conflict”** (por ejemplo, dos servidores DHCP activos).
 
-## Servidores DHCP en sistemas operativos libres y propietarios:
-### Instalación.
-En **GNU/Linux** son habituales **ISC DHCP Server** (isc-dhcp-server), **Kea DHCP** (alto rendimiento, backend SQL) y **dnsmasq** (ligero, DHCP+DNS caché idóneo para laboratorios). En **Windows Server** se agrega el rol **DHCP Server** y, en dominios, se **autoriza** el servidor en Active Directory para evitar servidores no autorizados.
+## Clientes DHCP en sistemas operativos libres y propietarios
 
-### Arranque.
-En **Linux** los servicios se gestionan con systemd (enable/now/status del servicio correspondiente). En **Windows Server** se inicia el servicio **DHCP Server** y se valida su estado desde la consola de administración.
-La supervisión continua de logs y alertas (agotamiento de pool, NAK repetidos, conflictos ARP) permite actuar antes de que los usuarios perciban cortes.
+### Instalación
+- En la mayoría de **sistemas operativos** (Linux, BSD, Windows, macOS) el **cliente DHCP viene integrado** de serie.
+- **Windows**: el servicio **Cliente DHCP** se ejecuta automáticamente si la interfaz está en modo “Obtener una dirección IP automáticamente”.
+- **Linux de escritorio**: servicios como **NetworkManager** utilizan internamente un cliente DHCP (por ejemplo, **dhclient** o **systemd-networkd**).
+- **Linux minimalista o embebido**: puede requerir instalar **isc-dhcp-client** (Debian/Ubuntu) si no está presente.
+- En entornos estándar de **PYME o educativos**, los PCs y dispositivos ya traen **cliente DHCP listo para usar**; solo hay que **habilitarlo**.
 
-### Ficheros y parámetros de configuración básica.
-En **ISC DHCP** la configuración reside en /etc/dhcp/dhcpd.conf. Esquema típico para un aula:
-default-lease-time 3600
-max-lease-time 7200
-authoritative
-subnet 192.168.30.0 netmask 255.255.255.0 {
-range 192.168.30.50 192.168.30.200;
-option routers 192.168.30.1;
-option domain-name "centro.local";
-option domain-name-servers 192.168.30.10, 1.1.1.1;
-option ntp-servers 192.168.30.10;
-host prn-aula-1 { hardware ethernet 00:11:22:33:44:55; fixed-address 192.168.30.60; }
-}
-En **dnsmasq** (laboratorios pequeños) se combinan DHCP y DNS caché en un único servicio con dhcp-range y dhcp-option para gateway y DNS.
-En **Kea DHCP** la configuración es JSON y permite almacenar concesiones en base de datos, exponer API y definir reservas granulares.
-En **Windows Server** se crean **Ámbitos** con rango, máscara y exclusiones, se definen **Opciones** (router, DNS, dominio) y, si se realiza imaging, se habilitan opciones PXE. Los asistentes guían el proceso y la consola ofrece vistas de estado y herramientas de exportación.
+### Configuración de interfaces de red para que obtengan su configuración por DHCP
+- **Windows**:
+  - Propiedades de **TCP/IP** de la tarjeta de red → **Obtener una dirección IP automáticamente** y **Obtener la dirección del servidor DNS automáticamente**.
+  - Similar para **IPv6** si se configura.
+- **Linux** (según distribución/herramientas):
+  - Archivo **/etc/network/interfaces** (Debian clásico): poner **iface eth0 inet dhcp**.
+  - **Red Hat/CentOS**: en **ifcfg-eth0** establecer **BOOTPROTO=dhcp**.
+  - **Netplan (Ubuntu actual)**: en YAML indicar **dhcp4: true**.
+  - Entorno gráfico: editar la conexión y elegir **Automático (DHCP)**.
+- **Verificación**:
+  - **Windows**: comando **ipconfig /all** muestra si la dirección está asignada por DHCP y el **servidor DHCP**.
+  - **Linux**: **ip addr** o **ifconfig** muestran la IP obtenida; registros en **/var/log/syslog** reflejan la concesión.
+- **Error común (APIPA)**:
+  - Dirección **169.254.x.x** en Windows indica que **no se consiguió DHCP**.
+  - Posibles causas: **cable**, **alcance Wi-Fi**, **VLAN incorrecta** en el switch, **servidor DHCP caído**.
+- **Buena práctica**: usar **DHCP** para equipos cliente por **flexibilidad y gestión centralizada**.
+  - Configurar **IP manual** solo para **servidores**, dispositivos que requieren IP fija **fuera del rango DHCP**, o cuando **no hay servidor DHCP**.
+  - Incluso para servidores, muchas empresas optan por **reservas DHCP** para mantener el **control centralizado**.
 
-### Información sobre concesiones (lease).
-En **ISC DHCP** las concesiones activas y expiradas se registran en el fichero dhcpd.leases (habitualmente en /var/lib/dhcp/) con IP, MAC, tiempos y nombre de host. En **Kea** pueden consultarse en ficheros o base de datos y por API; en **dnsmasq** se listan en dnsmasq.leases. En **Windows Server**, el panel Address Leases muestra en tiempo real IP, MAC, nombre y expiración, y permite liberar concesiones problemáticas o convertirlas en reservas.
-La observación de estos registros es esencial para diagnosticar “no obtiene IP”, localizar conflictos, identificar dispositivos desconocidos y ajustar el **lease time** según rotación (más corto en aulas, más largo en oficinas).
+## Servidores DHCP en sistemas operativos libres y propietarios
 
----
+### Instalación
+- **Linux (software libre)**:
+  - Servidor más común: **ISC DHCP (isc-dhcp-server)**.
+  - Alternativas: **dnsmasq** (ligero, routers/laboratorio) o **KEA DHCP** (también de ISC, más moderno).
+- **Windows Server (software propietario)**:
+  - Rol **DHCP** disponible (por ejemplo, 2016, 2019…); consola de **administración DHCP** para configurar ámbitos.
+- **Pequeñas oficinas sin Windows Server**:
+  - El **router del ISP** suele actuar como servidor DHCP (firmware propietario tipo **MikroTik, Cisco/Linksys**, etc.) con DHCP básico.
+- **Identificar dónde reside DHCP**:
+  - En empresas con **Active Directory**, probablemente el **controlador de dominio Windows Server**.
+  - En oficinas pequeñas, **router ADSL/fibra** del operador.
+- **Servidor Linux**:
+  - Asegurar que el servicio **arranca al inicio** y tiene permisos para **escuchar en la interfaz** correcta (por ejemplo, en Ubuntu editar **/etc/default/isc-dhcp-server** para indicar la interfaz).
 
-**Consejos orientados a empleo (técnico microinformático, soporte, admin junior):** automatizar altas con reservas por MAC documentadas; usar plantillas por sede/VLAN y control de cambios; integrar DHCP, DNS y NTP coherentes; evitar DNS públicos en equipos que consumen recursos internos; aplicar seguridad básica (DHCP Snooping en switches, bloqueo de puertos no autorizados en aulas).
+### Arranque
+- **Linux**:
+  - Servicio **dhcpd** habilitado tras la instalación.
+  - Gestión habitual: **systemctl start isc-dhcp-server** y **systemctl enable isc-dhcp-server** (en SysV: **service dhcpd start** y configuración de **runlevels**).
+- **Windows Server**:
+  - Tras agregar el rol DHCP, el servicio **se inicia automáticamente** y arranca con el sistema.
+  - Verificar en **services.msc** que esté **“En ejecución”**.
+  - **Autorizar el servidor DHCP en Active Directory** si es miembro del dominio (evita servidores no autorizados).
+- **Cortafuegos**:
+  - **Linux**: abrir **UDP 67** en el servidor (UFW, firewalld…).
+  - **Windows**: el rol DHCP crea reglas en **Firewall de Windows**, conviene confirmarlo.
+
+### Ficheros y parámetros de configuración básica
+- **Linux (ISC DHCP)**:
+  - Archivo principal: **/etc/dhcp/dhcpd.conf**.
+  - Definir **subredes** que servirá, **rango de IPs**, **máscara**, **gateway**, **DNS**, **duración de leases**, etc.
+  - **Ejemplo (comentado)**:
+    > # dhcpd.conf (ejemplo)  
+    > # subnet 192.168.1.0 netmask 255.255.255.0 {  
+    > #     range 192.168.1.100 192.168.1.200;  
+    > #     option routers 192.168.1.1;  
+    > #     option domain-name-servers 192.168.1.1, 8.8.8.8;  
+    > #     default-lease-time 86400;  
+    > #     max-lease-time 172800;  
+    > # }
+  - También incluir **option domain-name "empresa.local";** si se necesita definir el **dominio de búsqueda DNS**.
+- **Windows Server**:
+  - Configuración mediante **consola gráfica**:
+    - Crear **nuevo ámbito (scope)** indicando red (ej.: **192.168.1.0/24**), **rango inicial-final**, **puerta de enlace**, **DNS**, y **lease time**.
+    - Agregar **exclusiones** (por ejemplo, excluir **.1 a .50** si son IP fijas de servidores).
+  - **Sugerencias**:
+    - Windows puede **detectar la subred** del servidor y sugerir datos.
+    - En Linux hay que ser **explícito** en el archivo.
+  - Tras modificar la configuración, **reiniciar el servicio** para aplicar cambios (Linux: **systemctl restart dhcpd**; Windows: reiniciar servicio o refrescar en consola).
+- **Buenas prácticas**:
+  - **Documentar** la configuración DHCP (especialmente **reservas** y **exclusiones**).
+  - Mantener servidores **actualizados** (evitar vulnerabilidades que permitan entregar **gateway/DNS maliciosos**).
+
+### Información sobre concesiones (lease)
+- El servidor DHCP registra **concesiones activas y expiradas**.
+- **Linux/ISC DHCP**:
+  - Fichero de arrendamientos: **/var/lib/dhcp/dhcpd.leases**.
+  - Revisar también **/var/log/syslog** para mensajes del demonio (**DHCPACK on 192.168.1.101 to 00:11:22:33:44:55 (hostname)**).
+- **Windows Server**:
+  - La consola muestra en tiempo real **Direcciones IP en arrendamiento** bajo cada ámbito:
+    - **IP**, **nombre de host**, **MAC (ID de hardware)** y **tiempo de expiración**.
+  - Posible **liberar concesiones** (quitar arrendamiento) o **crear reservas** desde la consola.
+- **Reservas en Linux**:
+  - Editar **dhcpd.conf** añadiendo **host** con **fixed-address** para una **MAC**.
+- **Ajuste de expiración**:
+  - **Leases cortos** (horas) en redes de aulas con alta rotación.
+  - **Leases largos** (días/semanas) en oficinas con PCs fijos (menos tráfico DHCP y mayor estabilidad de IP).
+- **Auditoría y ciberseguridad básica**:
+  - Almacenar o exportar periódicamente la **información de concesiones** para rastrear dispositivos conectados (detectar **MAC desconocidas**).
+  - Proteger el servidor DHCP:
+    - En **Windows**, mediante **autorización en AD**.
+    - En general, evitar **rogue DHCP** segmentando la red o usando **DHCP snooping** en switches gestionables (filtrar respuestas solo desde el puerto autorizado del servidor legítimo).
+- **Resumen operativo**:
+  - La **gestión de concesiones DHCP** es una tarea rutinaria del administrador de red junior: mantenimiento (**limpieza de leases antiguos**, **configuración de reservas**) y **resolución de incidencias**.
+
