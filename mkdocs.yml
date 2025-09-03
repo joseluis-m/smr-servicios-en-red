@@ -1,7 +1,16 @@
 site_name: Servicios en red (0227) — 2.º SMR
 site_url: https://joseluis-m.github.io/smr-servicios-en-red/
+
 theme:
   name: material
   language: es
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: true
+
 plugins:
   - search
