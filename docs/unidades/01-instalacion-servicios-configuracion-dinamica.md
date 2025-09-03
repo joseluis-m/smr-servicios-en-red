@@ -10,6 +10,7 @@ Una **dirección IP** identifica de forma única a cada dispositivo en una red b
 > **Advertencia:** Una **máscara** mal configurada o una **gateway** fuera de la subred impiden el acceso a otros equipos o a Internet.
 
 **Checklist de planificación básica**
+
 - [ ] Definir **subred** y **máscara**.
 - [ ] Asignar **puerta de enlace**.
 - [ ] Reservar IPs para **servidores** y **dispositivos críticos**.
@@ -17,6 +18,7 @@ Una **dirección IP** identifica de forma única a cada dispositivo en una red b
 - [ ] Verificar **conectividad** entre segmentos.
 
 **Parámetros base (ejemplos)**
+
 Elemento | Descripción | Ejemplo
 ---|---|---
 Dirección IP | Identificador único del host | 192.168.1.100
@@ -35,6 +37,7 @@ _DHCP_ es un protocolo de configuración dinámica de host que **automatiza** la
 > **Nota:** Además de IP, DHCP puede entregar **DNS**, **dominio de búsqueda**, **WINS** (legado) u **opciones de arranque** para _PXE_.
 
 **Qué puede entregar DHCP**
+
 Parámetro | Descripción | Ejemplo
 ---|---|---
 IP | Dirección del cliente | 192.168.1.123
@@ -53,6 +56,7 @@ Un servidor DHCP trabaja sobre uno o varios **rangos** o **ámbitos** de direcci
 > **Ejemplo:** Reserva 192.168.1.50 para la **MAC** 00:11:22:33:44:55 (impresora); excluye 192.168.1.2–.49 (servidores).
 
 **Conceptos clave de ámbito**
+
 Término | Qué es | Ejemplo | Beneficio
 ---|---|---|---
 Ámbito (pool) | Rango servible | 192.168.1.100–.200 | Control de reparto
@@ -79,6 +83,7 @@ El proceso DHCP sigue un esquema cliente-servidor de **cuatro fases** conocido p
 > **Advertencia:** Dos **servidores DHCP** en el mismo segmento pueden causar **IPs duplicadas** o parámetros incoherentes.
 
 **Mensajes DORA (síntesis)**
+
 Mensaje | Emisor | Transporte | Finalidad
 ---|---|---|---
 Discover | Cliente | Broadcast | Búsqueda de servidor
@@ -96,6 +101,7 @@ Como se ha descrito, los mensajes fundamentales son **Discover**, **Offer**, **R
 > **Nota:** Verifica filtros del **cortafuegos** y la **VLAN** correcta al analizar capturas.
 
 **Mensajes y usos**
+
 Mensaje | Uso principal | Cuándo aparece
 ---|---|---
 NAK | Rechazo/invalidación | Solicitud no válida o expirada
@@ -114,12 +120,14 @@ En la mayoría de sistemas operativos tanto **libres** (_Linux_, _BSD_, etc.) co
 > **Nota:** En Linux mínimos, confirma la presencia de **dhclient** o **systemd-networkd** antes de diagnosticar.
 
 **Checklist de comprobación**
+
 - [ ] Servicio de **cliente DHCP** activo.
 - [ ] Interfaz en modo **automático** (IPv4/IPv6).
 - [ ] **Logs** accesibles para diagnóstico.
 - [ ] **Cortafuegos** local sin bloquear DHCP.
 
 **Tabla de referencia**
+
 Sistema | Cliente habitual | Gestión
 ---|---|---
 Windows | Cliente DHCP (servicio) | Panel de red
@@ -134,6 +142,7 @@ Configurar una **interfaz** para usar DHCP es normalmente una tarea sencilla. En
 > **Ejemplo:** Si ves **169.254.0.0/16** en ipconfig, sospecha de **falta de respuesta** DHCP.
 
 **Verificaciones rápidas**
+
 Paso | Acción | Objetivo
 ---|---|---
 1 | **Comando:** ipconfig /all | Confirmar asignación por DHCP
@@ -153,6 +162,7 @@ Un **servidor DHCP** puede instalarse tanto en plataformas **Linux** (software l
 > **Nota:** En equipos SOHO, confirma si el **router** ya entrega DHCP para evitar **servidores duplicados**.
 
 **Plataforma y paquete**
+
 Plataforma | Paquete/Rol | Dónde se gestiona
 ---|---|---
 Linux | isc-dhcp-server, dnsmasq, KEA | Archivos y systemd
@@ -167,6 +177,7 @@ Una vez instalado, el servicio DHCP debe **iniciarse** y mantenerse en ejecució
 > **Advertencia:** Sin **autorización en AD**, un servidor DHCP Windows **no servirá** direcciones en un dominio.
 
 **Checklist de puesta en marcha**
+
 - [ ] **Servicio** DHCP en ejecución.
 - [ ] **Habilitado** al arranque (enable).
 - [ ] **Autorizado** en **AD** (Windows).
@@ -191,6 +202,7 @@ Esto define un **ámbito** para la red **192.168.1.0/24** con IPs .100–.200 y 
 > **Nota:** Tras cambios en **dhcpd.conf**, recuerda **reiniciar** el servicio para aplicar la nueva configuración.
 
 **Parámetros esenciales**
+
 Parámetro | Propósito | Ejemplo
 ---|---|---
 Subred | Ámbito de servicio | 192.168.1.0/24
@@ -207,6 +219,7 @@ El **servidor DHCP** lleva un registro de las **concesiones** activas y expirada
 > **Advertencia:** Habilita **DHCP snooping** en switches gestionables para bloquear **servidores DHCP falsos**.
 
 **Operaciones habituales (resumen)**
+
 Acción | Dónde | Resultado
 ---|---|---
 Ver leases | Consola DHCP / fichero leases | IP ↔ MAC y expiración
